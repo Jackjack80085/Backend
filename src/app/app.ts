@@ -51,9 +51,24 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 }
 
-// Handle OPTIONS preflight BEFORE any other middleware or routes
-app.options('*', cors(corsOptions))
+// CORS middleware handles preflight requests automatically
 app.use(cors(corsOptions))
+app.use(requestLogger)
+
+// Swagger docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+
+// Serve the payment test page (test-integration.html + any QR image) at /pay
+// Place qr-code.png in the project root alongside test-integration.html
+const projectRoot = process.cwd()
+app.get('/pay', (_req, res) => {
+  res.sendFile(path.join(projectRoot, 'test-integration.html'))
+})
+// Serve static assets (qr-code.png etc.) from the project root at /pay-assets
+app.use('/pay-assets', express.static(projectRoot))
+
+app.use('/', routes)
+app.use(notFound)
 app.use(errorHandler)
 
 export default app
