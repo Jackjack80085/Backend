@@ -499,6 +499,17 @@
         .join('');
     }
 
+    
+    // Normalize backend URL: ensure it includes protocol (default to https://)
+    function normalizeBackendUrl(raw) {
+      if (!raw) return raw;
+      raw = raw.trim();
+      // remove trailing slash for consistent concatenation
+      raw = raw.replace(/\/+$/, '');
+      if (/^https?:\/\//i.test(raw)) return raw;
+      return 'https://' + raw;
+    }
+    
     // ── Generate a UUID v4 ───────────────────────────────────────────────────
     function uuid4() {
       return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
