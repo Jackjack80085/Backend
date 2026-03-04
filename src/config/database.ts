@@ -7,13 +7,13 @@ declare global {
   var __prisma: PrismaClient | undefined
 }
 
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+})
+
 const clientOptions: any = { 
   log: ['error', 'warn'],
-  adapter: new PrismaPg({
-    pool: new Pool({
-      connectionString: process.env.DATABASE_URL,
-    }),
-  }),
+  adapter: new PrismaPg(pool),
 }
 const prisma = global.__prisma ?? new PrismaClient(clientOptions)
 
