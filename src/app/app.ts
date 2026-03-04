@@ -52,7 +52,7 @@ const corsOptions = {
 }
 
 // Handle OPTIONS preflight BEFORE any other middleware or routes
-app.options('(.*)', cors(corsOptions))
+app.options('*', cors(corsOptions))
 app.use(cors(corsOptions))
 app.use(errorHandler)
 
