@@ -1,0 +1,1 @@
+INSERT INTO "admins" (id, email, "passwordHash", name, role, "isActive", "createdAt", "updatedAt") VALUES ('a102d9cc-f960-4205-9fe8-671b905760d5', 'admin@paycher.com', '$2b$12$gwG6j7wHV9jhOgkaeQeUyOSQoNgvFHKtNXbgc5D4E3rv4MAuSVh2K', 'Super Admin', 'SUPER_ADMIN', true, now(), now());

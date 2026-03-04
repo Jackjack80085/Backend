@@ -1,0 +1,360 @@
+generator client {
+  provider      = "prisma-client-js"
+  engineType    = "binary"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// No models defined - schema ready for future design
+// -------------------------------------------------
+// Enums
+// -------------------------------------------------
+enum PartnerStatus {
+  INVITED
+  REGISTERED
+  KYC_PENDING
+  KYC_REJECTED
+  ACTIVE
+  SUSPENDED
+}
+
+enum KycStatus {
+  PENDING
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum WalletType {
+  PLATFORM
+  PARTNER
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  UPI
+  CARD
+  NETBANKING
+  WALLET
+}
+
+enum LedgerEntryType {
+  CREDIT
+  DEBIT
+}
+
+enum LedgerEntryReason {
+  PAYMENT
+  COMMISSION
+  SETTLEMENT
+  REFUND
+  ADJUSTMENT
+}
+
+enum SettlementStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ReconciliationStatus {
+  OK
+  MISMATCH
+  CRITICAL
+}
+
+enum ActorType {
+  ADMIN
+  PARTNER
+  SYSTEM
+}
+
+// -------------------------------------------------
+// Models
+// -------------------------------------------------
+
+model Partner {
+  id                      String         @id @default(uuid()) @db.Uuid
+  businessName            String         @unique
+  email                   String         @unique
+  passwordHash            String?
+  phone                   String?
+  businessType            String?
+  
+  // Status fields
+  status                  PartnerStatus  @default(INVITED)
+  kycStatus               KycStatus      @default(PENDING)
+  
+  // Invitation
+  inviteToken             String?        @unique
+  inviteExpiresAt         DateTime?
+  invitedBy               String?        @db.Uuid
+  invitedAt               DateTime?
+  
+  // Registration
+  registeredAt            DateTime?
+  
+  // KYC
+  kycSubmittedAt          DateTime?
+  kycReviewedAt           DateTime?
+  kycReviewedBy           String?        @db.Uuid
+  kycRejectionReason      String?        @db.Text
+  kycApprovedAt           DateTime?
+  
+  // API credentials (issued after KYC approval)
+  apiKey                  String?        @unique
+  apiSecretHash           String?
+  apiSecretEncrypted      String?        @db.Text
+  apiKeyActiveFrom        DateTime?
+  apiKeyRevokedAt         DateTime?
+  apiKeyVersion           Int            @default(1)
+  previousApiKeys         Json?
+  lastKeyRotation         DateTime?
+  
+  // Settings
+  commissionRate          Decimal?       @db.Decimal(5, 4)
+  bankAccount             Json?
+  bankAccountVerified     Boolean?       @default(false)
+  minSettlementAmount     Decimal?       @db.Decimal(15,2)
+  maxDailySettlementAmount Decimal?     @db.Decimal(15,2)
+  maxSettlementsPerDay    Int?
+  webhookUrl              String?
+  isActive                Boolean        @default(false)
+  lastApiCallAt           DateTime?
+  
+  // Timestamps
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+
+  // Relations
+  wallet                  Wallet?
+  transactions            Transaction[]
+  settlements             Settlement[]
+  webhookLogs             WebhookLog[]
+  kycDocuments            KYCDocument[]
+
+  @@index([email])
+  @@index([status])
+  @@index([kycStatus])
+  @@map("partners")
+}
+
+model KYCDocument {
+  id              String            @id @default(uuid()) @db.Uuid
+  partnerId       String            @db.Uuid
+  documentType    KYCDocumentType
+  fileName        String
+  fileUrl         String
+  fileSize        Int
+  mimeType        String
+  status          DocumentStatus    @default(PENDING)
+  rejectionReason String?           @db.Text
+  uploadedAt      DateTime          @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?           @db.Uuid
+  
+  partner         Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  
+  @@index([partnerId, status])
+  @@index([partnerId, documentType])
+  @@map("kyc_documents")
+}
+
+enum KYCDocumentType {
+  BUSINESS_REGISTRATION
+  PAN_CARD
+  GST_CERTIFICATE
+  BANK_PROOF
+  DIRECTOR_ID
+  ADDRESS_PROOF
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Wallet {
+  id        String     @id @default(uuid()) @db.Uuid
+  partnerId String?    @unique @db.Uuid
+  type      WalletType
+  currency  String     @default("INR")
+  balance   Decimal    @default(0) @db.Decimal(15, 2)
+  lastReconciledAt DateTime?
+  lastReconciliationStatus ReconciliationStatus?
+  lockedAt  DateTime?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  partner         Partner?            @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  walletTransfers WalletTransaction[]
+  settlements     Settlement[]
+
+  @@index([partnerId])
+  @@index([type])
+}
+
+model Transaction {
+  id             String            @id @default(uuid()) @db.Uuid
+  partnerId      String            @db.Uuid
+  amount         Decimal           @db.Decimal(15, 2)
+  commission     Decimal           @db.Decimal(15, 2)
+  netAmount      Decimal           @db.Decimal(15, 2)
+  expiresAt      DateTime?
+  paymentUrl     String?
+  ipAddress      String?
+  userAgent      String?
+  callbackUrl    String?
+  paymentMethod  PaymentMethod
+  status         TransactionStatus @default(PENDING)
+  paywiseTxnId   String?
+  paywiseSessionId String?  @unique
+  paywiseResponse Json?
+  completedAt    DateTime?
+  failureReason  String?
+  userReference  String
+  idempotencyKey String
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  // Relations
+  partner       Partner             @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  walletEntries WalletTransaction[] @relation("RelatedTransaction")
+  webhookLogs   WebhookLog[]
+
+  @@unique([partnerId, idempotencyKey])
+  @@index([partnerId])
+  @@index([status])
+  @@index([paywiseTxnId])
+}
+
+model WalletTransaction {
+  id                   String            @id @default(uuid()) @db.Uuid
+  walletId             String            @db.Uuid
+  amount               Decimal           @db.Decimal(15, 2)
+  type                 LedgerEntryType
+  reason               LedgerEntryReason
+  relatedTransactionId String?           @db.Uuid
+  paywiseTxnId         String?
+  description          String?
+  relatedSettlementId  String?
+  createdAt            DateTime          @default(now())
+
+  // Relations
+  wallet      Wallet       @relation(fields: [walletId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  transaction Transaction? @relation("RelatedTransaction", fields: [relatedTransactionId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([walletId])
+  @@index([relatedTransactionId])
+  @@unique([paywiseTxnId])
+}
+
+model Settlement {
+  id        String           @id @default(uuid()) @db.Uuid
+  partnerId String           @db.Uuid
+  walletId  String           @db.Uuid
+  amount    Decimal          @db.Decimal(15, 2)
+  fee       Decimal          @db.Decimal(15, 2)
+  netAmount Decimal          @db.Decimal(15, 2)
+  totalDeducted Decimal      @db.Decimal(15, 2)
+  bankAccountSnapshot Json?
+  initiatedAt DateTime?
+  processedAt DateTime?
+  processedBy String?       @db.Uuid
+  completedAt DateTime?
+  completedBy String?       @db.Uuid
+  bankReferenceId String?
+  failureReason String?
+  status    SettlementStatus @default(PENDING)
+  reference String?
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Relations
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  wallet  Wallet  @relation(fields: [walletId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  webhookLogs WebhookLog[]
+
+  @@index([partnerId])
+  @@index([walletId])
+  @@index([status])
+}
+
+model WebhookLog {
+  id             String    @id @default(uuid()) @db.Uuid
+  partnerId      String    @db.Uuid
+  transactionId  String?   @db.Uuid
+  settlementId   String?   @db.Uuid
+  event          String
+  url            String
+  payload        Json
+  responseStatus Int?
+  responseBody   Json?
+  errorMessage   String?
+  attempt        Int
+  success        Boolean
+  createdAt      DateTime  @default(now())
+
+  partner     Partner      @relation(fields: [partnerId], references: [id])
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
+  settlement  Settlement?  @relation(fields: [settlementId], references: [id])
+
+  @@index([partnerId, createdAt])
+  @@index([transactionId])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  action      String
+  actorType   ActorType
+  actorId     String?
+  actorEmail  String?
+  targetType  String?
+  targetId    String?
+  description String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetId, action, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+model Admin {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         AdminRole @default(ADMIN)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([email])
+  @@map("admins")
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}

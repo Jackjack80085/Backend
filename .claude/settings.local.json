@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(xargs grep -l \"credential\\\\|api-key\")",
+      "Bash(npm run)",
+      "Bash(xargs grep -l \"requireAuth\")",
+      "Bash(curl -s http://localhost:5000/api/v1/partner/api-credentials -H \"Authorization: Bearer test\")",
+      "Bash(curl -s http://localhost:5000/health)",
+      "Bash(curl -s -X POST http://localhost:5000/auth/partner/login -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"test@test.com\"\",\"\"password\"\":\"\"test123\"\"}')",
+      "Bash(npx ts-node -e \"import prisma from ''./src/config/database''; async function main\\(\\) { const partners = await prisma.partner.findMany\\({ select: { email: true, status: true, businessName: true }, take: 5 }\\); console.log\\(JSON.stringify\\(partners, null, 2\\)\\); } main\\(\\);\")",
+      "Bash(curl -s http://localhost:5000/api/v1/partner/api-credentials -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXJ0bmVySWQiOiI0YzdiNmNiMy0yZjM0LTQ0NDItYTlhMC1lMGI1NzNjYTczZjIiLCJlbWFpbCI6InRlc3RwYXJ0bmVyMUBleGFtcGxlLmNvbSIsInN0YXR1cyI6IkFDVElWRSIsImlhdCI6MTc3MjMxMTE2MiwiZXhwIjoxNzcyMzM5OTYyfQ.Sz7AdIrarrjoOfqiAQnAq5D2TgCYhQ2uni_floRmjkk\")",
+      "Bash(curl -s http://localhost:5000/api/v1/partner/kyc-documents -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXJ0bmVySWQiOiI0YzdiNmNiMy0yZjM0LTQ0NDItYTlhMC1lMGI1NzNjYTczZjIiLCJlbWFpbCI6InRlc3RwYXJ0bmVyMUBleGFtcGxlLmNvbSIsInN0YXR1cyI6IkFDVElWRSIsImlhdCI6MTc3MjMxMTE2MiwiZXhwIjoxNzcyMzM5OTYyfQ.Sz7AdIrarrjoOfqiAQnAq5D2TgCYhQ2uni_floRmjkk\")",
+      "Bash(curl -s http://localhost:5000/api/v1/partner/api-credentials)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(curl -s -v http://localhost:5000/api/v1/partner/api-credentials -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXJ0bmVySWQiOiI0YzdiNmNiMy0yZjM0LTQ0NDItYTlhMC1lMGI1NzNjYTczZjIiLCJlbWFpbCI6InRlc3RwYXJ0bmVyMUBleGFtcGxlLmNvbSIsInN0YXR1cyI6IkFDVElWRSIsImlhdCI6MTc3MjMxMTE2MiwiZXhwIjoxNzcyMzM5OTYyfQ.Sz7AdIrarrjoOfqiAQnAq5D2TgCYhQ2uni_floRmjkk\")",
+      "Bash(node -e \":*)",
+      "Bash(curl -s -X POST http://localhost:5000/auth/partner/login -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"testpartner1@example.com\"\",\"\"password\"\":\"\"Test@12345\"\"}')",
+      "Bash(curl -s -X POST http://localhost:5000/auth/partner/login -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"testpartner1@example.com\"\",\"\"password\"\":\"\"Test@1234\"\"}')",
+      "Bash(xargs grep -l \"partnerId.*sign\\\\|sign.*partnerId\")",
+      "Bash(npx tsc --noEmit --pretty)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(node -e \"const crypto = require\\(''crypto''\\); console.log\\(''API_SECRET_ENC_KEY='' + crypto.randomBytes\\(32\\).toString\\(''base64''\\)\\); console.log\\(''JWT_SECRET='' + crypto.randomBytes\\(48\\).toString\\(''hex''\\)\\);\")",
+      "Bash(ls \"c:\\\\Users\\\\Kishan B M\\\\Documents\\\\pay\\\\prisma\"\" 2>/dev/null || dir \"c:UsersKishan B MDocumentspayprisma \")",
+      "Bash(npx ts-node scripts/seedSuperAdmin.ts)",
+      "Bash(npx ts-node -e \":*)",
+      "Bash(curl -s -X POST http://localhost:5000/auth/partner/login -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"testpartner1@example.com\"\",\"\"password\"\":\"\"User@123\"\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:5000/auth/partner/login -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"testpartner1@example.com\"\",\"\"password\"\":\"\"PartnerTest@123\"\"}')",
+      "Bash(PARTNER_TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXJ0bmVySWQiOiI0YzdiNmNiMy0yZjM0LTQ0NDItYTlhMC1lMGI1NzNjYTczZjIiLCJlbWFpbCI6InRlc3RwYXJ0bmVyMUBleGFtcGxlLmNvbSIsInN0YXR1cyI6IkFDVElWRSIsImlhdCI6MTc3MjQ3ODQ3MiwiZXhwIjoxNzcyNTA3MjcyfQ.aHbJnC_t082Wju6HeIMqExzXW9D0pXZJzzschxFAjtc\")",
+      "Bash(curl -s -X POST http://localhost:5000/api/v1/partner/rotate-api-key -H \"Authorization: Bearer $PARTNER_TOKEN\" -H \"Content-Type: application/json\" -d '{\"\"reason\"\":\"\"Integration testing\"\"}')"
+    ]
+  }
+}

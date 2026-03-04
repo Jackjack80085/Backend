@@ -1,0 +1,121 @@
+
+> pay@1.0.0 dev
+> ts-node src/server.ts
+
+[dotenv@17.2.4] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+[dotenv@17.2.4] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+📧 Email service in DEVELOPMENT mode (console logging)
+Server listening on port 5000
+🚀 Starting background job scheduler...
+
+✅ Job scheduler started with 4 tasks
+   • expirePayments: Every 5 minutes
+   • cleanupInvites: Daily at 03:00 AM
+   • autoReconciliation: Daily at 02:00 AM
+   • settlementStatusCheck: Every hour
+
+[request] {"timestamp":"2026-03-03T18:00:41.059Z","method":"GET","path":"/health","status":200,"duration":5,"partnerId":null,"ip":"::1"}
+{"action":"SETTLEMENT_STATUS_CHANGE","settlementId":"d1492353-8350-4b48-b845-30488db9c7e8","adminId":"a102d9cc-f960-4205-9fe8-671b905760d5","previousStatus":"PENDING","newStatus":"PROCESSING","timestamp":"2026-03-03T18:01:01.536Z"}
+[request] {"timestamp":"2026-03-03T18:01:01.541Z","method":"POST","path":"/api/v1/settlements/d1492353-8350-4b48-b845-30488db9c7e8/process","status":200,"duration":332,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:01:03.119Z","method":"GET","path":"/admin/reports/settlements?page=1&per=20","status":200,"duration":57,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:01:13.990Z","method":"POST","path":"/auth/partner/login","status":200,"duration":388,"partnerId":null,"ip":"::1"}
+[AUDIT] PARTNER_LOGIN by PARTNER:4c7b6cb3-2f34-4442-a9a0-e0b573ca73f2
+[request] {"timestamp":"2026-03-03T18:01:14.091Z","method":"GET","path":"/partner/reports/earnings","status":200,"duration":47,"partnerId":"4c7b6cb3-2f34-4442-a9a0-e0b573ca73f2","ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:01:14.112Z","method":"GET","path":"/partner/reports/transactions?page=1&per=20","status":304,"duration":63,"partnerId":"4c7b6cb3-2f34-4442-a9a0-e0b573ca73f2","ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:01:24.365Z","method":"GET","path":"/partner/reports/settlements?page=1&per=20","status":200,"duration":30,"partnerId":"4c7b6cb3-2f34-4442-a9a0-e0b573ca73f2","ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:01:24.369Z","method":"GET","path":"/partner/reports/transactions?page=1&per=20","status":304,"duration":31,"partnerId":"4c7b6cb3-2f34-4442-a9a0-e0b573ca73f2","ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:01:24.375Z","method":"GET","path":"/partner/reports/earnings","status":304,"duration":44,"partnerId":"4c7b6cb3-2f34-4442-a9a0-e0b573ca73f2","ip":"::1"}
+{"action":"SETTLEMENT_STATUS_CHANGE","settlementId":"d1492353-8350-4b48-b845-30488db9c7e8","adminId":"a102d9cc-f960-4205-9fe8-671b905760d5","previousStatus":"PROCESSING","newStatus":"COMPLETED","timestamp":"2026-03-03T18:01:41.673Z"}
+notifyPartner stub {
+  event: 'settlement.completed',
+  settlementId: 'd1492353-8350-4b48-b845-30488db9c7e8',
+  amount: 110
+}
+
+📧 EMAIL (Development Mode)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+To: testpartner1@example.com
+Subject: Settlement Completed Successfully
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: #1f4e78; color: white; padding: 20px; text-align: center; }
+    .content { padding: 30px; background: #f9f9f9; }
+    .button { display: inline-block; padding: 12px 24px; background: #2e75b5; color: white; text-decoration: none; border-radius: 4px; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Paycher</h1>
+    </div>
+    <div class="content">
+      <h2>Settlement Completed</h2>
+<p>Hi Test Partner Pvt. Ltd,</p>
+<p>Your settlement request has been processed successfully.</p>
+<h3>Settlement Details:</h3>
+<ul>
+  <li><strong>Amount:</strong> ₹100.00</li>
+  <li><strong>Fee:</strong> ₹10.00</li>
+  <li><strong>Net Amount:</strong> ₹100.00</li>
+  <li><strong>Bank Reference:</strong> 1333123123123</li>
+  <li><strong>Completed:</strong> 3/3/2026, 11:31:41 pm</li>
+</ul>
+<p>Funds should reflect in your bank account within 1-3 business days.</p>
+
+    </div>
+    <div class="footer">
+      <p>© 2026 Paycher Platform. All rights reserved.</p>
+      <p>This is an automated email. Please do not reply.</p>
+    </div>
+  </div>
+</body>
+</html>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[AUDIT] SETTLEMENT_COMPLETED by ADMIN:a102d9cc-f960-4205-9fe8-671b905760d5
+[request] {"timestamp":"2026-03-03T18:01:41.703Z","method":"POST","path":"/api/v1/settlements/d1492353-8350-4b48-b845-30488db9c7e8/complete","status":200,"duration":61,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:01:43.227Z","method":"GET","path":"/admin/reports/settlements?page=1&per=20","status":200,"duration":12,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:01:49.617Z","method":"GET","path":"/partner/reports/settlements?page=1&per=20","status":200,"duration":32,"partnerId":"4c7b6cb3-2f34-4442-a9a0-e0b573ca73f2","ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:01:49.631Z","method":"GET","path":"/partner/reports/earnings","status":304,"duration":56,"partnerId":"4c7b6cb3-2f34-4442-a9a0-e0b573ca73f2","ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:01:49.694Z","method":"GET","path":"/partner/reports/transactions?page=1&per=20","status":304,"duration":114,"partnerId":"4c7b6cb3-2f34-4442-a9a0-e0b573ca73f2","ip":"::1"}
+
+⏰ Running expirePayments job...
+[2026-03-03T18:05:00.221Z] [expirePayments] ℹ️  Checking for payments expired after 30 minutes...
+[2026-03-03T18:05:00.370Z] [expirePayments] ✅ Completed in 149ms - 0 items processed
+
+⏰ Running expirePayments job...
+[2026-03-03T18:10:00.128Z] [expirePayments] ℹ️  Checking for payments expired after 30 minutes...
+[2026-03-03T18:10:00.195Z] [expirePayments] ✅ Completed in 67ms - 0 items processed
+
+⏰ Running expirePayments job...
+[2026-03-03T18:15:00.069Z] [expirePayments] ℹ️  Checking for payments expired after 30 minutes...
+[2026-03-03T18:15:00.151Z] [expirePayments] ✅ Completed in 82ms - 0 items processed
+
+⏰ Running expirePayments job...
+[2026-03-03T18:20:00.106Z] [expirePayments] ℹ️  Checking for payments expired after 30 minutes...
+[2026-03-03T18:20:00.432Z] [expirePayments] ✅ Completed in 326ms - 0 items processed
+[request] {"timestamp":"2026-03-03T18:24:11.602Z","method":"GET","path":"/health","status":304,"duration":1,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:24:11.746Z","method":"GET","path":"/admin/reports/transactions?page=1&per=50","status":304,"duration":152,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:24:11.783Z","method":"GET","path":"/admin/reports/platform-stats","status":200,"duration":246,"partnerId":null,"ip":"::1"}
+[AUDIT] ADMIN_LOGIN by ADMIN:a102d9cc-f960-4205-9fe8-671b905760d5
+[request] {"timestamp":"2026-03-03T18:24:25.123Z","method":"POST","path":"/auth/admin/login","status":200,"duration":709,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:24:25.214Z","method":"GET","path":"/admin/reports/transactions?page=1&per=50","status":304,"duration":34,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:24:25.237Z","method":"GET","path":"/admin/reports/platform-stats","status":304,"duration":78,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:24:36.801Z","method":"GET","path":"/admin/reports/paywise-settlements?page=1&per=50","status":404,"duration":8,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:24:36.813Z","method":"GET","path":"/admin/reports/transactions?page=1&per=50","status":304,"duration":22,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:24:36.836Z","method":"GET","path":"/admin/reports/platform-stats","status":304,"duration":49,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:24:39.541Z","method":"GET","path":"/admin/reports/paywise-settlements?page=1&per=50","status":404,"duration":3,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:24:39.548Z","method":"GET","path":"/admin/reports/transactions?page=1&per=50","status":304,"duration":14,"partnerId":null,"ip":"::1"}
+[request] {"timestamp":"2026-03-03T18:24:39.564Z","method":"GET","path":"/admin/reports/platform-stats","status":304,"duration":35,"partnerId":null,"ip":"::1"}
+
+⏰ Running expirePayments job...
+[2026-03-03T18:25:00.063Z] [expirePayments] ℹ️  Checking for payments expired after 30 minutes...
+[2026-03-03T18:25:00.078Z] [expirePayments] ✅ Completed in 15ms - 0 items processed

@@ -1,0 +1,149 @@
+First: who are the players?
+
+There are 3 parties:
+
+End User
+→ the customer who pays (UPI / card / etc)
+
+Partner
+→ the business that integrated your APIs (their app/website)
+
+Paycher (you)
+→ the platform in the middle using Paywise
+
+Step-by-step money flow (real life)
+Step 1: User pays
+
+A user is on partner’s app
+
+Partner calls your API
+
+You create a payment
+
+User pays via Paywise
+
+👉 Money goes from user’s bank → Paywise
+
+Step 2: Where does the money go next?
+
+This is the key point 👇
+
+❌ Money does NOT go directly to the partner’s bank
+✅ Money first comes to Paycher’s control account (via Paywise)
+
+Why?
+
+Compliance
+
+Reconciliation
+
+Refunds
+
+Commission calculation
+
+Fraud handling
+
+So at this moment:
+
+Paywise → Paycher (holding money)
+
+Step 3: Partner “earns” money (but doesn’t receive it yet)
+
+Out of the paid amount:
+
+Paycher keeps commission
+
+Remaining amount belongs to partner
+
+Example:
+
+User pays        ₹1000
+Paycher fee      ₹30
+Partner earning  ₹970
+
+
+👉 That ₹970 is partner’s money, but it is still inside Paycher.
+
+🔑 THIS is why we need a Partner Wallet
+What is Partner Wallet really?
+
+👉 It is NOT real money
+👉 It is an internal record (ledger) saying:
+
+“Paycher owes this partner ₹970”
+
+So:
+
+Partner wallet = how much Paycher owes the partner
+
+Not cash
+
+Not bank balance
+
+Just accounting
+
+Think of it like:
+
+Amazon seller balance
+
+Uber driver wallet
+
+Zomato partner earnings
+
+Why not send money instantly to partner bank?
+
+Because:
+
+Users may request refunds
+
+Payments may fail later
+
+Disputes can happen
+
+Partners want batch withdrawals
+
+Banks don’t support millions of micro transfers
+
+So money stays temporarily with Paycher.
+
+Step 4: Settlement (withdrawal)
+
+When partner says:
+
+“Give me my money now”
+
+They create a settlement request.
+
+Settlement means:
+👉 Move money from Paycher → partner’s bank
+
+This can be done by:
+
+Manual bank transfer
+
+Same Paywise (if supported)
+
+Any other payout method
+
+That part is outside the wallet logic.
+
+Simple full picture (1 glance)
+User → Paywise → Paycher (holds money)
+                     |
+                     ↓
+              Partner Wallet (record)
+                     |
+            Settlement request
+                     |
+                     ↓
+              Partner Bank Account
+
+Very important clarification
+❌ Partner wallet ≠ money stored on website
+✅ Partner wallet = internal accounting record
+
+The real money is:
+
+In Paywise / Paycher’s bank
+
+Until settlement happens
