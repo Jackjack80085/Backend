@@ -30,44 +30,30 @@ app.use(
 )
 // Allow requests from frontend and local test pages
 const allowedOrigins = [
-  'http://localhost:3000', 
-  'http://localhost:5500', 
-  'http://127.0.0.1:5500', 
-  'http://localhost:5000', 
+  'http://localhost:3000',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500',
+  'http://localhost:5000',
   'http://127.0.0.1:5000',
-  'https://frontend-production-39ad.up.railway.app'
+  'https://frontend-production-39ad.up.railway.app',
 ]
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (file://, curl, Postman)
-      // Allow all origins in development, only allow whitelist in production
-      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
-        callback(null, true)
-      } else {
-        callback(null, true) // Allow cross-origin in production too
-      }
-    },
-    credentials: true,
-  })
-)
-app.use(requestLogger)
 
-// Swagger docs
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      callback(null, true)
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`))
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}
 
-// Serve the payment test page (test-integration.html + any QR image) at /pay
-// Place qr-code.png in the project root alongside test-integration.html
-const projectRoot = process.cwd()
-app.get('/pay', (_req, res) => {
-  res.sendFile(path.join(projectRoot, 'test-integration.html'))
-})
-// Serve static assets (qr-code.png etc.) from the project root at /pay-assets
-app.use('/pay-assets', express.static(projectRoot))
-
-app.use('/', routes)
-
-app.use(notFound)
+// Handle OPTIONS preflight BEFORE any other middleware or routes
+app.options('*', cors(corsOptions))
+app.use(cors(corsOptions))
 app.use(errorHandler)
 
 export default app
