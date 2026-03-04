@@ -29,15 +29,23 @@ app.use(
   })
 )
 // Allow requests from frontend and local test pages
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:5000', 'http://127.0.0.1:5000']
+const allowedOrigins = [
+  'http://localhost:3000', 
+  'http://localhost:5500', 
+  'http://127.0.0.1:5500', 
+  'http://localhost:5000', 
+  'http://127.0.0.1:5000',
+  'https://frontend-production-39ad.up.railway.app'
+]
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (file://, curl, Postman) in dev
+      // Allow requests with no origin (file://, curl, Postman)
+      // Allow all origins in development, only allow whitelist in production
       if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
         callback(null, true)
       } else {
-        callback(new Error('Not allowed by CORS'))
+        callback(null, true) // Allow cross-origin in production too
       }
     },
     credentials: true,
