@@ -339,13 +339,59 @@
       </div>
 
       <div class="user-info">
-        <label>Your Email (for receipt)</label>
-        <input type="email" id="userEmail" placeholder="player@email.com">
+        <label>Your Email <span style="font-weight:400; color:#aaa;">(optional)</span></label>
+        <input type="email" id="userEmail" placeholder="player@email.com (optional)">
       </div>
 
-      <button class="pay-button" onclick="initiatePayment()">Pay Now</button>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="pay-button" onclick="initiatePayment()" style="flex: 1;">⚡ Pay via API</button>
+        <button class="pay-button" onclick="openQRModal()" style="flex: 1; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">📱 Pay via QR Code</button>
+      </div>
 
       <div id="paymentStatus" style="margin-top: 20px; padding: 15px; border-radius: 8px; display: none;"></div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qrModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+      <div style="background:white; border-radius:20px; padding:36px; max-width:420px; width:90%; text-align:center; box-shadow: 0 25px 60px rgba(0,0,0,0.4); position:relative;">
+        <button onclick="closeQRModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:24px; cursor:pointer; color:#999; line-height:1;">✕</button>
+        <h2 style="margin:0 0 4px 0; color:#333; font-size:22px;">Scan & Pay</h2>
+        <p style="color:#888; font-size:13px; margin:0 0 20px 0;">Scan the QR code with any UPI app — GPay, PhonePe, Paytm, BHIM</p>
+
+        <!-- QR Image — replace qr-code.png with the actual filename sent by client -->
+        <div style="padding:16px; border: 2px dashed #e0e0e0; border-radius:12px; margin-bottom:20px; min-height:220px; display:flex; align-items:center; justify-content:center; background:#fafafa;">
+          <img
+            id="qrImage"
+            src="/pay-assets/gpay.jpeg"
+            alt="UPI QR Code"
+            onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='block';"
+            style="max-width:200px; max-height:200px; border-radius:8px;"
+          />
+          <div id="qrFallback" style="display:none; color:#bbb; text-align:center;">
+            <div style="font-size:60px; margin-bottom:8px;">📷</div>
+            <p style="font-size:12px; margin:0;">Place <strong>qr-code.png</strong> in the same folder as this HTML file</p>
+          </div>
+        </div>
+
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px; margin-bottom:20px; text-align:left;">
+          <p style="margin:0 0 6px 0; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#16a34a;">Steps to pay</p>
+          <p style="margin:0; font-size:13px; color:#166534; line-height:1.6;">
+            1. Scan the QR with any UPI app<br>
+            2. Enter the exact amount you selected<br>
+            3. Complete the payment in your UPI app<br>
+            4. Come back here and click <strong>"I've Paid"</strong>
+          </p>
+        </div>
+
+        <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:12px; margin-bottom:20px; font-size:13px; color:#92400e;">
+          Amount selected: <strong id="qrAmount" style="font-size:16px;">₹500</strong>
+        </div>
+
+        <button onclick="closeQRModal()" style="width:100%; padding:16px; background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; border-radius:10px; font-size:16px; font-weight:700; cursor:pointer;">
+          ✅ Done — I've Paid
+        </button>
+        <p style="margin:12px 0 0 0; font-size:11px; color:#aaa;">After scanning, enter the amount below and click ⚡ Pay via API, then Simulate Success</p>
+      </div>
     </div>
 
     <!-- API Integration -->
@@ -468,14 +514,13 @@
       const apiSecret = document.getElementById('apiSecret').value.trim();
       const backendUrl = document.getElementById('backendUrl').value.replace(/\/$/, '');
 
-      if (!email)   { alert('Please enter your email'); return; }
       if (!amount || amount < 100 || amount > 100000) {
         alert('Please enter a valid amount between ₹100 and ₹100,000'); return;
       }
       if (!apiKey)    { alert('Please configure your API Key'); return; }
       if (!apiSecret) { alert('Please configure your API Secret'); return; }
 
-      log(`Initiating payment of ₹${amount} for ${email}`, 'info');
+      log(`Initiating payment of ₹${amount}${email ? ' for ' + email : ''}`, 'info');
 
       const timestamp  = Math.floor(Date.now() / 1000).toString(); // seconds, matching the server
       const body = {
@@ -483,7 +528,7 @@
         currency: 'INR',
         userReference: `game_${Date.now()}`,
         idempotencyKey: uuid4(),
-        userEmail: email,
+        ...(email ? { customerEmail: email } : {}),
       };
       const bodyString = JSON.stringify(body);
 
@@ -596,6 +641,23 @@
         log(`✗ Error: ${err.message}`, 'error');
       }
     }
+
+    // ── QR Code payment flow ─────────────────────────────────────────────────
+    function openQRModal() {
+      const amount = parseInt(document.getElementById('customAmount').value, 10);
+      if (!amount || amount < 100) { alert('Please select a game or enter a valid amount (min ₹100) first'); return; }
+      document.getElementById('qrAmount').textContent = '₹' + amount.toLocaleString('en-IN');
+      document.getElementById('qrModal').style.display = 'flex';
+    }
+
+    function closeQRModal() {
+      document.getElementById('qrModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('qrModal').addEventListener('click', function(e) {
+      if (e.target === this) closeQRModal();
+    });
 
     // ── Init ─────────────────────────────────────────────────────────────────
     log('Gaming Hub loaded — paste your API Key & Secret, then click Pay Now', 'info');

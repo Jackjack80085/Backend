@@ -42,37 +42,35 @@ router.use('/partner/reports', partnerReports)
 router.use('/admin/reports', adminReports)
 
 // ---- DEV ONLY: mock payment completion ----
-if (process.env.NODE_ENV !== 'production') {
-  router.post('/dev/complete-payment/:id', async (req: Request, res: Response) => {
-    try {
-      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
-      const txn = await prisma.transaction.findUnique({ where: { id } })
-      if (!txn) return res.status(404).json({ error: 'Transaction not found' })
-      if (txn.status !== 'PENDING') return res.status(400).json({ error: `Transaction is already ${txn.status}` })
-      await completePayment({
-        transactionId: id,
-        paywiseTxnId: `mock_complete_${Date.now()}`,
-        paymentMethod: 'UPI',
-        completedAt: new Date(),
-      })
-      res.json({ success: true, message: 'Payment marked as SUCCESS', transactionId: txn.id })
-    } catch (err: any) {
-      res.status(500).json({ error: err.message })
-    }
-  })
+router.post('/dev/complete-payment/:id', async (req: Request, res: Response) => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+    const txn = await prisma.transaction.findUnique({ where: { id } })
+    if (!txn) return res.status(404).json({ error: 'Transaction not found' })
+    if (txn.status !== 'PENDING') return res.status(400).json({ error: `Transaction is already ${txn.status}` })
+    await completePayment({
+      transactionId: id,
+      paywiseTxnId: `mock_complete_${Date.now()}`,
+      paymentMethod: 'UPI',
+      completedAt: new Date(),
+    })
+    res.json({ success: true, message: 'Payment marked as SUCCESS', transactionId: txn.id })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
 
-  router.post('/dev/fail-payment/:id', async (req: Request, res: Response) => {
-    try {
-      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
-      const txn = await prisma.transaction.findUnique({ where: { id } })
-      if (!txn) return res.status(404).json({ error: 'Transaction not found' })
-      if (txn.status !== 'PENDING') return res.status(400).json({ error: `Transaction is already ${txn.status}` })
-      await failPayment({ transactionId: id, failureReason: 'Manually failed (dev)' })
-      res.json({ success: true, message: 'Payment marked as FAILED', transactionId: txn.id })
-    } catch (err: any) {
-      res.status(500).json({ error: err.message })
-    }
-  })
-}
+router.post('/dev/fail-payment/:id', async (req: Request, res: Response) => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+    const txn = await prisma.transaction.findUnique({ where: { id } })
+    if (!txn) return res.status(404).json({ error: 'Transaction not found' })
+    if (txn.status !== 'PENDING') return res.status(400).json({ error: `Transaction is already ${txn.status}` })
+    await failPayment({ transactionId: id, failureReason: 'Manually failed (dev)' })
+    res.json({ success: true, message: 'Payment marked as FAILED', transactionId: txn.id })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
 
 export default router

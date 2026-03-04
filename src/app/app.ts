@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import path from 'path'
 import swaggerUi from 'swagger-ui-express'
 import { swaggerSpec } from '../config/swagger.config'
 import requestLogger from '../middlewares/logger.middleware'
@@ -28,7 +29,7 @@ app.use(
   })
 )
 // Allow requests from frontend and local test pages
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500']
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:5000', 'http://127.0.0.1:5000']
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -46,6 +47,15 @@ app.use(requestLogger)
 
 // Swagger docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+
+// Serve the payment test page (test-integration.html + any QR image) at /pay
+// Place qr-code.png in the project root alongside test-integration.html
+const projectRoot = process.cwd()
+app.get('/pay', (_req, res) => {
+  res.sendFile(path.join(projectRoot, 'test-integration.html'))
+})
+// Serve static assets (qr-code.png etc.) from the project root at /pay-assets
+app.use('/pay-assets', express.static(projectRoot))
 
 app.use('/', routes)
 

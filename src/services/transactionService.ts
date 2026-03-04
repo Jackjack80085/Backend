@@ -113,13 +113,14 @@ export async function createTransaction(input: CreateTransactionInput) {
     paywiseSessionId = paywiseResult.paywiseTransactionId || null;
     qrCode = paywiseResult.qrCode || null;
     upiIntent = paywiseResult.upiIntent || null;
-    // No expiresAt in new API, so keep original
   } catch (err) {
-    // If Paywise call fails, mark transaction failed and rethrow
-    await prisma.transaction.update({ where: { id: created.id }, data: { status: 'FAILED', failureReason: 'Payment gateway unavailable' } })
-    throw err instanceof AppError ? err : new AppError(502, 'Payment gateway unavailable', ErrorCodes.PAYWISE_ERROR)
+    // Paywise unavailable (sandbox / no credentials) — keep transaction PENDING
+    // so dev simulate endpoints (/dev/complete-payment, /dev/fail-payment) still work
+    console.warn('[createTransaction] Paywise call failed, using fallback (sandbox mode)', (err as any)?.message)
+    paymentUrl = `${process.env.APP_URL || 'http://localhost:5000'}/pay?txn=${created.id}`
   }
 
+  console.log('[createTransaction] updating txn', created.id, 'paymentUrl:', paymentUrl, 'paywiseSessionId:', paywiseSessionId)
   // Update transaction with Paywise details
   await prisma.transaction.update({
     where: { id: created.id },

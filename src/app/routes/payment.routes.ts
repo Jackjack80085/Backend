@@ -113,6 +113,7 @@ router.post(
 
       res.json(result)
     } catch (err) {
+      console.error('[/initiate] ERROR:', err)
       next(err)
     }
   },

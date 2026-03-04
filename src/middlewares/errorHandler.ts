@@ -25,6 +25,7 @@ function errorHandler(err: any, req: Request, res: Response, _next: NextFunction
     error: {
       code: 'INTERNAL_ERROR',
       message,
+      debug: process.env.NODE_ENV !== 'production' ? { msg: err?.message, stack: err?.stack?.split('\n').slice(0, 5) } : undefined,
     },
   })
 }

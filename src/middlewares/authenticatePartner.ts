@@ -170,7 +170,7 @@ export default async function authenticatePartner(req: Request, res: Response, n
 
     return next()
   } catch (err) {
-    console.error('Authentication middleware error', err)
+    console.error('Authentication middleware error', JSON.stringify(err), err)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
