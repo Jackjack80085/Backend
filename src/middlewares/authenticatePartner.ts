@@ -85,40 +85,49 @@ export default async function authenticatePartner(req: Request, res: Response, n
 
     const partner = await prisma.partner.findUnique({ where: { apiKey } })
     if (!partner) {
-      console.warn('Auth failed: unknown apiKey')
+      console.warn('🔴 Auth failed: unknown apiKey', { providedKey: apiKey })
+
       return res.status(401).json({ error: 'Invalid credentials' })
     }
 
+      console.warn('🔴 Auth failed: unknown apiKey', { providedKey: apiKey })
+
+
     if (!partner.isActive) {
-      console.warn('Auth failed: partner inactive', { partnerId: partner.id })
+      console.warn('🔴 Auth failed: partner inactive', { partnerId: partner.id })
       return res.status(403).json({ error: 'Partner inactive' })
     }
 
     if (!partner.apiKeyActiveFrom || partner.apiKeyActiveFrom.getTime() > Date.now()) {
-      console.warn('Auth failed: key not active yet', { partnerId: partner.id })
+      console.warn('🔴 Auth failed: key not active yet', { partnerId: partner.id, activeFrom: partner.apiKeyActiveFrom })
       return res.status(403).json({ error: 'API key not active' })
     }
 
     if (partner.apiKeyRevokedAt) {
-      console.warn('Auth failed: key revoked', { partnerId: partner.id })
+      console.warn('🔴 Auth failed: key revoked', { partnerId: partner.id, revokedAt: partner.apiKeyRevokedAt })
       return res.status(403).json({ error: 'API key revoked' })
     }
 
     if (!partner.apiSecretEncrypted) {
-      console.warn('Auth failed: no encrypted secret stored', { partnerId: partner.id })
+      console.warn('🔴 Auth failed: no encrypted secret stored', { partnerId: partner.id })
       return res.status(401).json({ error: 'Invalid credentials' })
     }
+
+      console.log('✓ Encrypted secret exists', { partnerId: partner.id, secretLength: partner.apiSecretEncrypted.length })
+
 
     let secret: string | null = null
     try {
       secret = decryptSecret(partner.apiSecretEncrypted)
+      console.log('✓ Secret decrypted successfully', { partnerId: partner.id, secretLength: secret?.length })
+
     } catch (err) {
-      console.warn('Auth failed: secret decryption error', { partnerId: partner.id })
+      console.error('🔴 Auth failed: secret decryption error', { partnerId: partner.id, error: (err as Error).message })
       return res.status(500).json({ error: 'Server configuration error' })
     }
 
     if (!secret) {
-      console.warn('Auth failed: could not decrypt secret', { partnerId: partner.id })
+      console.warn('🔴 Auth failed: could not decrypt secret (null result)', { partnerId: partner.id })
       return res.status(401).json({ error: 'Invalid credentials' })
     }
 
@@ -155,8 +164,25 @@ export default async function authenticatePartner(req: Request, res: Response, n
 
     const provided = signature.trim()
     const ok = timingSafeCompareHex(expected, provided)
+
+    console.log('🔍 Signature Validation', {
+      partnerId: partner.id,
+      timestamp,
+      method,
+      path,
+      bodyString: bodyString.substring(0, 100),
+      bodyLength: bodyString.length,
+      expectedSig: expected.substring(0, 16) + '...',
+      providedSig: provided.substring(0, 16) + '...',
+      match: ok
+    })
+    
     if (!ok) {
-      console.warn('Auth failed: signature mismatch', { partnerId: partner.id })
+      console.warn('🔴 Auth failed: signature mismatch', { 
+        partnerId: partner.id,
+        expectedFull: expected,
+        providedFull: provided
+      })
       return res.status(401).json({ error: 'Invalid signature' })
     }
 
@@ -174,3 +200,4 @@ export default async function authenticatePartner(req: Request, res: Response, n
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
