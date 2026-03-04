@@ -8,9 +8,9 @@ import app from './app/app'
 import config from './config'
 import { startJobScheduler } from './jobs'
 
-const port = config.PORT || 5000
+const port = process.env.PORT || config.PORT || 5000
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server listening on port ${port}`)
   startJobScheduler()
 })
