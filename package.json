@@ -4,11 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node src/server.ts",
-    "start": "ts-node src/server.ts",
-    "build": "chmod +x node_modules/.bin/prisma node_modules/.bin/tsc && npx prisma generate && npx tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "dev": "ts-node src/server.ts",
+  "build": "chmod +x node_modules/.bin/prisma node_modules/.bin/tsc && npx prisma generate && npx prisma migrate deploy && npx tsc",
+  "start": "node dist/server.js"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
