@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
   "dev": "ts-node src/server.ts",
-  "build": "chmod +x node_modules/.bin/prisma node_modules/.bin/tsc && npx prisma generate && npx prisma migrate deploy && npx tsc",
-  "start": "node dist/server.js"
+  "build": "chmod +x node_modules/.bin/prisma node_modules/.bin/tsc && npx prisma generate && npx tsc",
+  "start": "npx prisma migrate deploy && node dist/server.js"
 },
   "keywords": [],
   "author": "",
