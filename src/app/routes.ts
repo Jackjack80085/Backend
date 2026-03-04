@@ -21,11 +21,9 @@ router.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok' })
 })
 
-// Webhooks (no auth – Paywise handles signature)
 router.use('/webhooks/paywise', paywiseWebhook)
 router.use('/webhooks/paywise-settlement', paywiseSettlementWebhook)
 
-// API v1 routes
 router.use('/api/v1/payments', paymentRoutes)
 router.use('/api/v1/settlements', settlementRoutes)
 router.use('/api/v1/partners', partnerRoutes)
@@ -33,15 +31,12 @@ router.use('/api/v1', partnerInvitationRoutes)
 router.use('/api/v1', kycDocumentRoutes)
 router.use('/api/v1', apiKeyRotationRoutes)
 router.use('/api/v1', auditLogRoutes)
-// Admin auth routes (login / register)
 router.use('/auth/admin', adminAuthRoutes)
 router.use('/auth/partner', partnerAuthRoutes)
 
-// Report routes
 router.use('/partner/reports', partnerReports)
 router.use('/admin/reports', adminReports)
 
-// ---- DEV ONLY: mock payment completion ----
 router.post('/dev/complete-payment/:id', async (req: Request, res: Response) => {
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
@@ -68,6 +63,34 @@ router.post('/dev/fail-payment/:id', async (req: Request, res: Response) => {
     if (txn.status !== 'PENDING') return res.status(400).json({ error: `Transaction is already ${txn.status}` })
     await failPayment({ transactionId: id, failureReason: 'Manually failed (dev)' })
     res.json({ success: true, message: 'Payment marked as FAILED', transactionId: txn.id })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ONE-TIME FIX: Create missing wallets for partners
+router.get('/admin/fix-wallets', async (req: Request, res: Response) => {
+  try {
+    const partners = await prisma.partner.findMany({
+      include: { wallet: true }
+    })
+    const results = []
+    for (const partner of partners) {
+      if (!partner.wallet) {
+        await prisma.wallet.create({
+          data: {
+            partnerId: partner.id,
+            type: 'PARTNER',
+            balance: 0,
+            currency: 'INR',
+          }
+        })
+        results.push({ partnerId: partner.id, action: 'wallet created' })
+      } else {
+        results.push({ partnerId: partner.id, action: 'wallet already exists' })
+      }
+    }
+    res.json({ success: true, results })
   } catch (err: any) {
     res.status(500).json({ error: err.message })
   }
