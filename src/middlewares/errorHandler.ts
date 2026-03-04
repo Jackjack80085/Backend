@@ -16,9 +16,10 @@ function errorHandler(err: any, req: Request, res: Response, _next: NextFunction
 
   // Legacy errors that have a .status / .statusCode number
   const status: number = err.statusCode || err.status || 500
-  const message: string = status < 500 ? err.message : 'Internal Server Error'
+  const actualMessage: string = err.message || 'Unknown error'
+  const message: string = status < 500 ? actualMessage : `Internal Server Error: ${actualMessage}`
 
-  console.error('[errorHandler]', err)
+  console.error('[errorHandler]', { status, message: actualMessage, stack: err.stack })
 
   res.status(status).json({
     success: false,
@@ -31,3 +32,4 @@ function errorHandler(err: any, req: Request, res: Response, _next: NextFunction
 }
 
 export default errorHandler
+
