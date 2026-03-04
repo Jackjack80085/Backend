@@ -1,8 +1,5 @@
-// Ensure Prisma uses the binary engine at process start to avoid runtime adapter errors
-process.env.PRISMA_CLIENT_ENGINE_TYPE = process.env.PRISMA_CLIENT_ENGINE_TYPE || 'binary'
-
-// Force app port to 5000 (override system/env) to honor requested default
-process.env.PORT = '5000'
+// Remove or change this line - 'binary' is not valid in Prisma v6+
+// process.env.PRISMA_CLIENT_ENGINE_TYPE = process.env.PRISMA_CLIENT_ENGINE_TYPE || 'binary'
 
 import app from './app/app'
 import config from './config'
