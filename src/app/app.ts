@@ -20,6 +20,11 @@ declare global {
 
 const app = express()
 
+// Health check FIRST — before all middleware, so Railway marks service as healthy
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' })
+})
+
 // Parse JSON and capture raw body for later use (via verify)
 app.use(
   express.json({
@@ -28,6 +33,7 @@ app.use(
     },
   })
 )
+
 // Allow requests from frontend and local test pages
 const allowedOrigins = [
   'http://localhost:3000',
@@ -51,20 +57,30 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 }
 
-// CORS middleware handles preflight requests automatically
+// Handle OPTIONS preflight manually (avoids path-to-regexp wildcard issues)
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    res.sendStatus(204)
+    return
+  }
+  next()
+})
+
 app.use(cors(corsOptions))
 app.use(requestLogger)
 
 // Swagger docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
-// Serve the payment test page (test-integration.html + any QR image) at /pay
-// Place qr-code.png in the project root alongside test-integration.html
+// Serve the payment test page at /pay
 const projectRoot = process.cwd()
 app.get('/pay', (_req, res) => {
   res.sendFile(path.join(projectRoot, 'test-integration.html'))
 })
-// Serve static assets (qr-code.png etc.) from the project root at /pay-assets
 app.use('/pay-assets', express.static(projectRoot))
 
 app.use('/', routes)
