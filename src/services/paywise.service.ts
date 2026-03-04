@@ -105,7 +105,7 @@ export class PaywiseService {
     if (process.env.MOCK_PAYWISE === 'true') {
       return {
         paywiseTransactionId: `mock_${params.transactionId}`,
-        paymentUrl: `http://localhost:5000/mock-payment?txn=${params.transactionId}`,
+        paymentUrl: `${process.env.APP_URL || 'http://localhost:5000'}/mock-payment?txn=${params.transactionId}`,
         status: 'PENDING',
       };
     }
@@ -266,3 +266,4 @@ export class PaywiseService {
   }
 
 }
+
