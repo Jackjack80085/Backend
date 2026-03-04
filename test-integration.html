@@ -523,7 +523,8 @@
       const amount    = parseInt(document.getElementById('customAmount').value, 10);
       const apiKey    = document.getElementById('apiKey').value.trim();
       const apiSecret = document.getElementById('apiSecret').value.trim();
-      const backendUrl = document.getElementById('backendUrl').value.replace(/\/$/, '');
+      const backendUrl = normalizeBackendUrl(document.getElementById('backendUrl').value);
+
 
       if (!amount || amount < 100 || amount > 100000) {
         alert('Please enter a valid amount between ₹100 and ₹100,000'); return;
@@ -613,7 +614,8 @@
 
     async function simulateSuccess() {
       if (!lastTransactionId) { alert('No active transaction'); return; }
-      const backendUrl = document.getElementById('backendUrl').value.replace(/\/$/, '');
+      const backendUrl = normalizeBackendUrl(document.getElementById('backendUrl').value);
+
       log(`Simulating SUCCESS for transaction ${lastTransactionId}...`, 'info');
       try {
         const res = await fetch(`${backendUrl}/dev/complete-payment/${lastTransactionId}`, { method: 'POST' });
@@ -637,7 +639,8 @@
 
     async function simulateFail() {
       if (!lastTransactionId) { alert('No active transaction'); return; }
-      const backendUrl = document.getElementById('backendUrl').value.replace(/\/$/, '');
+      const backendUrl = normalizeBackendUrl(document.getElementById('backendUrl').value);
+
       log(`Simulating FAILURE for transaction ${lastTransactionId}...`, 'info');
       try {
         const res = await fetch(`${backendUrl}/dev/fail-payment/${lastTransactionId}`, { method: 'POST' });
